@@ -28,7 +28,7 @@ def test_get_url_for_filetype_multiple_files():
 @vcrconf.use_cassette()
 def test_get_url_returns_valid_url():
     results = autumn.hunt.get_filetype("pdf")
-    result = results.next()
+    result = next(results)
     assert requests.head(result,
                          allow_redirects=True,
                          verify=False).status_code == 200
