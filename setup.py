@@ -17,4 +17,8 @@ setup(
     author_email='francis.x.fitzpatrick@gmail.com',
     license='GPL v2',
     packages=find_packages(),
+    install_requires=[
+        "google",
+        "requests",
+    ]
 )
