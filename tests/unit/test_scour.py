@@ -9,8 +9,9 @@ def test_get_url_for_filetype():
 
 
 def test_get_url_for_filetype_multiple_files():
-    results = autumn.scour.get_filetype("pdf", count=10)
-    assert len(results) == 10
+    count = 5
+    results = autumn.scour.get_filetype("pdf", count=count)
+    assert len(results) == count
 
 
 def test_get_url_returns_valid_url():
