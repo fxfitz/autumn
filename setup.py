@@ -18,7 +18,7 @@ setup(
     license='GPL v2',
     packages=find_packages(),
     install_requires=[
-        "google",  # Needs to be above > 1.7 for py3 support
+        "google>=1.8",
         "requests",
     ]
 )
