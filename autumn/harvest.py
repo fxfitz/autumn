@@ -1,5 +1,6 @@
 import hashlib
 import io
+import magic
 import os.path
 import requests
 import shutil
@@ -20,6 +21,9 @@ def harvest(filetype, path, count):
 
         content = io.BytesIO(req.content)
         content_sha1 = get_sha1(content)
+
+        if not _correct_filetype(content, filetype):
+            continue
 
         filename = os.path.join(base_path,
                                 '{}.{}'.format(content_sha1, filetype))
@@ -48,3 +52,16 @@ def get_sha1(stream):
     stream.seek(start)
 
     return hasher.hexdigest()
+
+
+def _correct_filetype(stream, desired_filetype):
+    start = stream.tell()
+
+    stream.seek(0)
+    with magic.Magic() as m:
+        magic_filetype = m.id_buffer(stream.read())
+    stream.seek(start)
+
+    # NOTE: Is there a better way to do this? Will this work with all
+    # filetypes? :-(
+    return desired_filetype.lower() in magic_filetype.lower()

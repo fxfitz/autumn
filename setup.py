@@ -20,5 +20,6 @@ setup(
     install_requires=[
         "google>=1.8",
         "requests",
+        "filemagic"
     ]
 )

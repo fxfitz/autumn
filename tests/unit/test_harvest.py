@@ -1,3 +1,4 @@
+import magic
 import os
 import os.path
 import pytest
@@ -54,6 +55,16 @@ def test_harvest_returns_sha1_filenames(tempdir):
     expected = os.path.join(tempdir, '{}.{}'.format(sha1, filetype))
 
     assert results[0] == expected
+
+
+def test_harvest_only_returns_correct_filetype(tempdir):
+    filetype = 'pdf'
+    count = 3
+    results = harvest(filetype, tempdir, count)
+
+    for path in results:
+        with magic.Magic() as m:
+            assert filetype.lower() in m.id_filename(path).lower()
 
 
 def test_get_sha1():
