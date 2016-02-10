@@ -1,8 +1,9 @@
 import google
 
 
-def get_urls(filetype, count=1):
-    res = google.search("filetype:{}".format(filetype),
-                        num=count,
-                        stop=count)
-    return res
+def get_filetype(filetype):
+    return _search("filetype:{}".format(filetype))
+
+
+def _search(term):
+    return google.search(term, num=50)
