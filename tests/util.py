@@ -6,5 +6,3 @@ vcrconf = vcr.VCR(
     record_mode='once',
     match_on=['method']
 )
-
-HARVEST_PATH = 'tests/fixtures/harvester'

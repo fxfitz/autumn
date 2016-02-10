@@ -1,5 +1,6 @@
 import os
 import os.path
+import tempfile
 
 import autumn.harvest
 from autumn.harvest import harvest
@@ -11,7 +12,7 @@ def test_harvest_returns_list():
     filetype = 'pdf'
     count = 1
     results = harvest(filetype,
-                      tests.util.HARVEST_PATH,
+                      tempfile.gettempdir(),
                       count)
 
     assert isinstance(results, list)
@@ -23,7 +24,7 @@ def test_harvest_returns_list_of_proper_size():
     filetype = 'pdf'
     count = 3
     results = harvest(filetype,
-                      tests.util.HARVEST_PATH,
+                      tempfile.gettempdir(),
                       count)
 
     assert len(results) == count
@@ -33,12 +34,12 @@ def test_harvest_returns_list_of_proper_size():
 def test_harvest_returns_sha1_filenames():
     filetype = 'pdf'
     count = 1
-    results = harvest(filetype, tests.util.HARVEST_PATH, count)
+    results = harvest(filetype, tempfile.gettempdir(), count)
 
     with open(results[0], 'rb') as fd:
         sha1 = autumn.harvest.get_sha1(fd)
 
-    expected = os.path.join(tests.util.HARVEST_PATH,
+    expected = os.path.join(tempfile.gettempdir(),
                             '{}.{}'.format(sha1, filetype))
 
     assert results[0] == expected
