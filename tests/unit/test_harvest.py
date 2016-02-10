@@ -11,6 +11,9 @@ import tests.util
 
 @pytest.fixture(scope='function')
 def tempdir(request):
+    # NOTE(fxfitz): In py34, using the tempfile.TemporaryDirectory()
+    # context manager would probably be best instead of doing it this
+    # way, but it looks like it was never backported to py27 :-(
     dirpath = tempfile.mkdtemp()
 
     def cleanup():
@@ -24,21 +27,17 @@ def tempdir(request):
 def test_harvest_returns_list(tempdir):
     filetype = 'pdf'
     count = 1
-    results = harvest(filetype,
-                      tempdir,
-                      count)
+    results = harvest(filetype, tempdir, count)
 
     assert isinstance(results, list)
 
 
 @tests.util.vcrconf.use_cassette()
 def test_harvest_returns_list_of_proper_size(tempdir):
-    # TODO: Maybe use pytest parameterize to test lots of different counts
+    # TODO: Maybe use pytest parameterize to test different counts
     filetype = 'pdf'
     count = 3
-    results = harvest(filetype,
-                      tempdir,
-                      count)
+    results = harvest(filetype, tempdir, count)
 
     assert len(results) == count
 
@@ -52,8 +51,7 @@ def test_harvest_returns_sha1_filenames(tempdir):
     with open(results[0], 'rb') as fd:
         sha1 = autumn.harvest.get_sha1(fd)
 
-    expected = os.path.join(tempdir,
-                            '{}.{}'.format(sha1, filetype))
+    expected = os.path.join(tempdir, '{}.{}'.format(sha1, filetype))
 
     assert results[0] == expected
 
