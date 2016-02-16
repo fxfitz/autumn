@@ -16,9 +16,15 @@ setup(
     author="Fran Fitzpatrick",
     author_email='francis.x.fitzpatrick@gmail.com',
     license='GPL v2',
+    entry_points={
+        'console_scripts': [
+            'autumn = autumn.cmd.run:main',
+        ]
+    },
     packages=find_packages(),
     install_requires=[
         "google>=1.9",
-        "requests"
+        "requests",
+        "six"
     ]
 )

@@ -8,13 +8,11 @@ import shutil
 def harvest(url, path, verify_certificate=True):
     base_path = os.path.expanduser(path)
 
-    try:
-        req = requests.get(url, verify=verify_certificate)
-    except requests.exceptions.SSLError as e:
-        raise e
+    req = requests.get(url, verify=verify_certificate)
 
     if not req.ok:
-        return None
+        message = "Request to URL ({}) was not OK (Status Code: {})"
+        raise RuntimeError(message.format(url, req.status_code))
 
     content = io.BytesIO(req.content)
     content_sha1 = get_sha1(content)
