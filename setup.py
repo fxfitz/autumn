@@ -18,7 +18,7 @@ setup(
     license='GPL v2',
     packages=find_packages(),
     install_requires=[
-        "google>=1.8",
+        "google>=1.9",
         "requests",
         "filemagic"
     ]
