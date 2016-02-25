@@ -8,14 +8,20 @@ import shutil
 import autumn.hunt
 
 
-def harvest(filetype, path, count):
+def harvest(filetype, path, count, verify_certificate=True):
     files_downloaded = []
     base_path = os.path.expanduser(path)
 
     urls = autumn.hunt.get_filetype(filetype)
 
     while len(files_downloaded) < count:
-        req = requests.get(next(urls))
+        try:
+            req = requests.get(next(urls), verify=verify_certificate)
+        except requests.exceptions.SSLError:
+            # If there are SSLErrors, just skip and move on. Shouldn't happen
+            # if verify_certificate is false.
+            continue
+
         if not req.ok:
             continue
 
