@@ -20,7 +20,7 @@ def main():
         files_downloaded = 0
         while files_downloaded != args.count:
             try:
-                result = autumn.harvest.harvest(next(urls), path)
+                result = autumn.harvest.harvest(next(urls), path, args.verify)
             except StopIteration:
                 return -1
             except Exception:
@@ -40,6 +40,11 @@ def _parse_args():
                         help="The filetype to search for")
     parser.add_argument('-p', '--path', action=_FullPaths, type=_is_dir,
                         help="Download path")
+    parser.add_argument('--disable-verification',
+                        help="Disables SSL/TLS certification verification",
+                        action='store_false',
+                        default=True,
+                        dest='verify')
 
     return parser.parse_args()
 
