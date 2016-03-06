@@ -1,13 +1,14 @@
-import magic
 import os
 import os.path
 import pytest
 import shutil
 import tempfile
 
+import requests
+
 import autumn.harvest
+import autumn.hunt
 from autumn.harvest import harvest
-import tests.util
 
 
 @pytest.fixture(scope='function')
@@ -24,52 +25,49 @@ def tempdir(request):
     return dirpath
 
 
-@tests.util.vcrconf.use_cassette()
-def test_harvest_returns_list(tempdir):
-    filetype = 'pdf'
-    count = 1
-    results = harvest(filetype, tempdir, count)
-
-    assert isinstance(results, list)
-
-
-@tests.util.vcrconf.use_cassette()
-def test_harvest_returns_list_of_proper_size(tempdir):
-    # TODO: Maybe use pytest parameterize to test different counts
-    filetype = 'pdf'
-    count = 3
-    results = harvest(filetype, tempdir, count)
-
-    assert len(results) == count
-
-
-@tests.util.vcrconf.use_cassette()
-def test_harvest_returns_sha1_filenames(tempdir):
-    filetype = 'pdf'
-    count = 1
-    results = harvest(filetype, tempdir, count)
-
-    with open(results[0], 'rb') as fd:
-        sha1 = autumn.harvest.get_sha1(fd)
-
-    expected = os.path.join(tempdir, '{}.{}'.format(sha1, filetype))
-
-    assert results[0] == expected
-
-
-def test_harvest_only_returns_correct_filetype(tempdir):
-    filetype = 'pdf'
-    count = 3
-    results = harvest(filetype, tempdir, count)
-
-    for path in results:
-        with magic.Magic() as m:
-            assert filetype.lower() in m.id_filename(path).lower()
-
-
 def test_get_sha1():
     test_file = 'tests/fixtures/sha1_test.txt'
     known_sha1 = '9d9aecd30e523986aa2c6ad05e08f91ae86dfbfb'
 
     with open(test_file, 'rb') as fd:
         assert autumn.harvest.get_sha1(fd) == known_sha1
+
+
+def test_harvest_returns_none_if_response_is_not_ok(tempdir, monkeypatch):
+    monkeypatch.setattr(requests, 'get',
+                        lambda *args, **kwargs: FakeResponse(False))
+
+    url = "http://www.somefakewebsitethatdoesntexist.com/fjoeijfa.pdf"
+    result = harvest(url, tempdir)
+
+    assert result is None
+
+
+def test_harvest__downloads_and_names_file_as_sha1(tempdir, monkeypatch):
+    test_file = 'tests/fixtures/sha1_test.txt'
+    known_sha1 = '9d9aecd30e523986aa2c6ad05e08f91ae86dfbfb'
+    with open(test_file) as test:
+        content = test.read().encode('utf-8')
+        monkeypatch.setattr(requests, 'get',
+                            lambda *a, **kw: FakeResponse(content=content))
+
+        url = "http://www.oursamplepdf.com/"
+        result = harvest(url, tempdir)
+
+        assert result == os.path.join(tempdir, known_sha1)
+
+
+def test_harvest_verifies_certificates(tempdir, monkeypatch):
+    def cert_verify_failed():
+        raise requests.exceptions.SSLError
+    monkeypatch.setattr(requests, 'get', lambda *a, **k: cert_verify_failed())
+
+    with pytest.raises(requests.exceptions.SSLError):
+        harvest("https://www.evilwebsite.com", tempdir)
+
+
+class FakeResponse(object):
+
+    def __init__(self, ok=True, content=None):
+        self.ok = ok
+        self.content = content

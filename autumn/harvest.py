@@ -1,46 +1,31 @@
 import hashlib
 import io
-import magic
 import os.path
 import requests
 import shutil
 
-import autumn.hunt
 
-
-def harvest(filetype, path, count, verify_certificate=True):
-    files_downloaded = []
+def harvest(url, path, verify_certificate=True):
     base_path = os.path.expanduser(path)
 
-    urls = autumn.hunt.get_filetype(filetype)
+    try:
+        req = requests.get(url, verify=verify_certificate)
+    except requests.exceptions.SSLError as e:
+        raise e
 
-    while len(files_downloaded) < count:
-        try:
-            req = requests.get(next(urls), verify=verify_certificate)
-        except requests.exceptions.SSLError:
-            # If there are SSLErrors, just skip and move on. Shouldn't happen
-            # if verify_certificate is false.
-            continue
+    if not req.ok:
+        return None
 
-        if not req.ok:
-            continue
+    content = io.BytesIO(req.content)
+    content_sha1 = get_sha1(content)
 
-        content = io.BytesIO(req.content)
-        content_sha1 = get_sha1(content)
+    filename = os.path.join(base_path, '{}'.format(content_sha1))
 
-        if not _correct_filetype(content, filetype):
-            continue
+    with open(filename, 'wb') as fd:
+        content.seek(0)
+        shutil.copyfileobj(content, fd)
 
-        filename = os.path.join(base_path,
-                                '{}.{}'.format(content_sha1, filetype))
-
-        with open(filename, 'wb') as fd:
-            content.seek(0)
-            shutil.copyfileobj(content, fd)
-
-        files_downloaded.append(filename)
-
-    return files_downloaded
+    return filename
 
 
 def get_sha1(stream):
@@ -58,16 +43,3 @@ def get_sha1(stream):
     stream.seek(start)
 
     return hasher.hexdigest()
-
-
-def _correct_filetype(stream, desired_filetype):
-    start = stream.tell()
-
-    stream.seek(0)
-    with magic.Magic() as m:
-        magic_filetype = m.id_buffer(stream.read())
-    stream.seek(start)
-
-    # NOTE: Is there a better way to do this? Will this work with all
-    # filetypes? :-(
-    return desired_filetype.lower() in magic_filetype.lower()
