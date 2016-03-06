@@ -19,7 +19,6 @@ setup(
     packages=find_packages(),
     install_requires=[
         "google>=1.9",
-        "requests",
-        "filemagic"
+        "requests"
     ]
 )
