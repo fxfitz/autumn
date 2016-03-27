@@ -1,3 +1,5 @@
+import random
+
 import google
 
 
@@ -6,4 +8,5 @@ def get_filetype(filetype):
 
 
 def _search(term):
-    return google.search(term, num=50)
+    start = random.randint(1, 10000)
+    return google.search(term, num=50, start=start)
